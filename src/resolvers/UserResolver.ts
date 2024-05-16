@@ -1,7 +1,6 @@
 import { Resolver, Query, Mutation, Arg, InputType, Field } from 'type-graphql';
 import { User } from '../entity/User';
-import { getRepository, FindOneOptions } from 'typeorm';
-import { Facility } from '../entity/Facility';
+import AppDataSource from '../data-source';
 
 @InputType()
 class UserInput {
@@ -22,19 +21,14 @@ class UserInput {
 export class UserResolver {
   @Query(() => User)
   async user(@Arg('id') id: string) {
-    const repository = getRepository(User);
-    const options: FindOneOptions<User> = {
-      where: { id },
-      relations: ['facilities'],
-    };
-    return repository.findOneOrFail(options);
+    return AppDataSource.getRepository(User).findOneBy({ id });
   }
 
   @Mutation(() => User)
   async createUser(@Arg('data') data: UserInput) {
-    const repository = getRepository(User);
-    const user = repository.create(data);
-    await repository.save(user);
+    const userRepository = AppDataSource.getRepository(User);
+    const user = userRepository.create(data);
+    await userRepository.save(user);
     return user;
   }
 }

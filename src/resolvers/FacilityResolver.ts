@@ -1,6 +1,6 @@
 import { Resolver, Query, Mutation, Arg, InputType, Field } from 'type-graphql';
 import { Facility } from '../entity/Facility';
-import { getRepository, FindOneOptions } from 'typeorm';
+import AppDataSource from '../data-source';
 
 @InputType()
 class FacilityInput {
@@ -10,23 +10,19 @@ class FacilityInput {
 
 @Resolver()
 export class FacilityResolver {
-  private facilityRepository = getRepository(Facility);
-
   @Query(() => Facility)
   async facility(@Arg('id') id: string) {
-    const repository = getRepository(Facility);
-    const options: FindOneOptions<Facility> = {
+    return AppDataSource.getRepository(Facility).findOne({
       where: { id },
       relations: ['locations', 'users'],
-    };
-    return repository.findOne(options);
+    });
   }
 
   @Mutation(() => Facility)
   async createFacility(@Arg('data') data: FacilityInput) {
-    const repository = getRepository(Facility);
-    const facility = repository.create(data);
-    await repository.save(facility);
+    const facilityRepository = AppDataSource.getRepository(Facility);
+    const facility = facilityRepository.create(data);
+    await facilityRepository.save(facility);
     return facility;
   }
 }
